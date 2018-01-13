@@ -29,15 +29,21 @@ public class Computer extends Player
 					board.shipDirection = random.nextInt(2+1);
 					System.out.print(board.shipDirection);
 					
-					if(board.shipDirection == 1)
+					if(!board.validInput(board.startRow, board.startCol, board.horizontal, ships.getShipSize()))
 					{
-						board.horizontal = false;
+						System.out.println("Boat missplaced!\nTry again");
 					}
-					
-					if(board.checkEmptySpot(board.startRow, board.startCol, board.horizontal, ships.getShipSize()) && (board.validInput(board.startRow, board.startCol, board.horizontal, ships.getShipSize())))
+					else
 					{
-						missplaced = false;
-						board.setShip(board.startRow, board.startCol, board.horizontal, ships.getShipSize(), ships.getShipDescription());	
+						if(board.checkEmptySpot(board.startRow, board.startCol, board.horizontal, ships.getShipSize()))
+						{
+							missplaced = false;
+							board.setShip(board.startRow, board.startCol, board.horizontal, ships.getShipSize(), ships.getShipDescription());	
+						}
+						else
+						{
+							System.out.println("These coordinates are already covered by a ship, try again!");
+						}
 					}
 			}
 		}
