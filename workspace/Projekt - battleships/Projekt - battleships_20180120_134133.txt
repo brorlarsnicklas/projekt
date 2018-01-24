@@ -1,0 +1,5 @@
+ERROR - 13:41:33: java.net.MalformedURLException: unknown protocol: pathmap
+WARNING - 13:42:40: Convert Projekt - battleships
+ERROR - 13:42:40: java.net.MalformedURLException: unknown protocol: pathmap
+ERROR - 13:46:20: java.net.MalformedURLException: unknown protocol: pathmap
+ERROR - 13:47:54: java.net.MalformedURLException: unknown protocol: pathmap

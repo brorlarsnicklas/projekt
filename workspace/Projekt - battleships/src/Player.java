@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.Stack;
 
 public class Player {
 
@@ -7,17 +8,19 @@ public class Player {
 	String name;
 	Scanner input = new Scanner(System.in);
 	
-	protected int cruiserLife = ships.cruiser.getShipSize();
-	protected int battleshipLife = ships.battleship.getShipSize();
-	protected int yachtLife = ships.yacht.getShipSize();
-	protected int submarineLife = ships.submarine.getShipSize();
-	protected int destroyerLife = ships.destroyer.getShipSize();	
-	protected int shotRow, shotCol, opponentShips = 5;
-	protected float hitRate = 0, shotsFired = 0, hitCount = 0, missCount = 0;
+	protected int cruiserLife = Ships.cruiser.getShipSize();
+	protected int battleshipLife = Ships.battleship.getShipSize();
+	protected int yachtLife = Ships.yacht.getShipSize();
+	protected int submarineLife = Ships.submarine.getShipSize();
+	protected int destroyerLife = Ships.destroyer.getShipSize();	
+	protected int shotRow, shotCol, tempCol, tempRow, opponentShips = 5, opponentShipParts = 17, hitStreak = 0;
+	protected float hitRate = 0, dmgRate = 0, shotsFired = 0, hitCount = 0, missCount = 0;
 	protected boolean winner = false, hit;
+	protected Stack<Integer> stack = new Stack<Integer>();	// stack med förslag för skjutkoordinater
+	protected int lastHitRow = 0, lastHitCol = 0;
 	
 	
-
+	// Skapar spelplaner åt spelaren
 	public Player(String name)
 	{
 		this.name = name;
@@ -25,6 +28,7 @@ public class Player {
 		board.createboard(board.getshootingboard());
 	}
 	
+	// Låter spelaren avfyra skott mot motståndaren
 	public void fire(Board oppBoard)
 	{
 		hit = true;
@@ -32,62 +36,116 @@ public class Player {
 		
 		while(hit)
 		{
-		do {
-				try 
-				{
-					computeHitRate();
-					board.printBoard(oppBoard.getshootingboard());
-					System.out.println("Enter a column: ");
-					shotCol = input.nextInt();
-					System.out.println("Enter a row: ");
-					shotRow = input.nextInt();
-					
-					if(validInput(shotRow, shotCol))
+			do {
+					try 
 					{
-						valid = false;
+						computeStats();
+						board.printBoard(oppBoard.getshootingboard());
 						
-						if(checkHit(oppBoard,shotRow,shotCol))
-						{	shotsFired++;
-							if(hit)
-							{
-							oppBoard.getshootingboard()[shotRow][shotCol] = 'X';
-							oppBoard.getshipboard()[shotRow][shotCol] = 'X';
-							hitCount++;
+						// Stack med förslag på koordinater att avfyra baserat på tidigare träffar
+						if(!stack.isEmpty())
+						{
+							System.out.println("Coordinate suggestions based on last hit: ");
 							
-								if(checkGameOver())
+							tempCol = (int) stack.pop();
+							tempRow = (int) stack.pop();
+							while(oppBoard.getshootingboard()[tempRow][tempCol] == 'X' || oppBoard.getshootingboard()[tempRow][tempCol] == 'O')
+							{
+								tempCol = (int) stack.pop();
+								tempRow = (int) stack.pop();
+							}
+							System.out.println("Col: " + tempCol);
+							System.out.println("Row: " + tempRow);
+						}
+						System.out.println("Enter a column: ");
+						shotCol = input.nextInt();
+						System.out.println("Enter a row: ");
+						shotRow = input.nextInt();
+						
+						// Kontrollerar att input är inom spelplanen
+						if(validInput(shotRow, shotCol)) 
+						{
+							valid = false;
+							
+							// Kontrollerar om valda koordinater ger träff
+							if(checkHit(oppBoard,shotRow,shotCol))
+							{	shotsFired++;
+								if(hit)
 								{
-									Main.gameOn = false;
-									winner = true;
-									System.out.println("Ahoy, YOU WON THE GAME!!!!");
-									hit = false;
+								oppBoard.getshootingboard()[shotRow][shotCol] = 'X';
+								oppBoard.getshipboard()[shotRow][shotCol] = 'X';
+								hitCount++;
+								lastHitRow = shotRow;
+								lastHitCol = shotCol;
+								// Vid träff läggs närliggande koordinater i en stack för tips på kommande skott
+								fireCoordinates(lastHitRow, lastHitCol);
+								
+									// Kontrollerar vid träff om motståndaren har båtar kvar
+									if(checkGameOver())
+									{
+										Main.gameOn = false;
+										winner = true;
+										System.out.println("\nAhoy "+ name+ ", YOU WON THE GAME!!!!");
+										System.out.println("\nWinning stats: ");
+										computeStats();
+										
+										hit = false;
+									}
+									else
+									{	// Låter spelaren skjuta igen vid träff
+										oppBoard.printBoard(oppBoard.getshootingboard());
+										System.out.println("\nHIT! Fire another one, Captain!");
+										playerChoice();
+									}
 								}
 								else
-								{
-									System.out.println("\nHIT! Fire another one, Captain!");	
+								{	// markerar ut en miss på spelplanen
+									oppBoard.getshootingboard()[shotRow][shotCol] = 'O';
+									oppBoard.getshipboard()[shotRow][shotCol] = 'O';
+									oppBoard.printBoard(oppBoard.getshootingboard());
+									System.out.println("Aaaaargh you missed! Better luck next time, Captain!\n");
 								}
 							}
-							else
-							{
-								oppBoard.getshootingboard()[shotRow][shotCol] = 'O';
-								oppBoard.getshipboard()[shotRow][shotCol] = 'O';
-								System.out.println("Aaaaargh you missed! Better luck next time, Captain!\n");
-							}
 						}
-					}
-					else
+						else
+						{
+							System.out.println("Please enter a number between 0-9!" + "\n("+shotRow+","+shotCol+") is not a valid coordinate Captain!");
+						}	
+					} 
+					catch (Exception e) 
 					{
-						System.out.println("Please enter a number between 0-9!" + "\n("+shotRow+","+shotCol+") is not a valid coordinate Captain!");
-					}	
-				} 
-				catch (Exception e) 
-				{
-					System.out.println("\n* Input must be a int value, Captain! *\n");
-					input.next();
-				}
-			} while (valid);
+						System.out.println("\n* Input must be a int value, Captain! *\n");
+						input.next();
+					}
+				} while (valid);
 		}
 	}
 	
+	// Lägger koordinater i stacken 
+	public void fireCoordinates(int row, int col)
+	{
+		if(row+1 <= 9)
+		{
+			stack.push(row+1);
+			stack.push(col);
+		}
+		if(row-1 >= 0)
+		{
+		stack.push(row-1);
+		stack.push(col);
+		}
+		if(col+1 <= 9)
+		{
+			stack.push(row);
+			stack.push(col+1);
+		}
+		if(col-1 >= 0){
+			stack.push(row);
+			stack.push(col-1);
+		}
+	}
+	
+	// Kontrollerar om motståndaren har skepp kvar
 	public boolean checkGameOver()
 	{
 		if(opponentShips == 0)
@@ -97,6 +155,7 @@ public class Player {
 		return false;
 	}
 	
+	// Kontrollerar om input är inom spelplanen
 	public boolean validInput(int testRow, int testCol)
 	{
 		if(0 > testCol || testCol > 10)
@@ -112,8 +171,10 @@ public class Player {
 		return true;
 	}
 	
+	// Kontrollerar om skottkoordinater är en träff eller inte
 	public boolean checkHit(Board oppBoard, int row, int col)
 	{
+		// Om träff minska liv för träffat skepp
 		switch(oppBoard.getshootingboard()[row][col])
 		{
 		case 'O':
@@ -180,6 +241,7 @@ public class Player {
 		}
 	}
 	
+	// Placerar skepp på givna koordinater 
 	public void shipPlacement()
 	{	
 		for(Ships ships : Ships.values())
@@ -203,6 +265,7 @@ public class Player {
 					System.out.println("Direction of the ship is horizontal.\nDo you want to switch to vertical? \n1: Yes\n2: no");
 					board.shipDirection = input.nextInt();
 					
+					// Bestämmer riktning på skeppet
 					if(board.shipDirection == 1)
 					{
 						board.horizontal = false;
@@ -228,21 +291,49 @@ public class Player {
 				} 
 				catch (Exception e) 
 				{
-					System.out.println("\n* Input must be a int value *\n");
+					System.out.println("\n* Input must be an int value *\n");
 					input.next();
 				}
 			   } while (valid);		
 		}
+		board.printBoard(board.getshipboard());
+		
+		if(playerChoice())
+		{
+			board.printEmptyRows();
+		}
+		
 	}
 	
-	public void computeHitRate() {
+	// Val för att fortsätta spelet när man är redo
+	public boolean playerChoice()
+	{
+		Scanner inputen = new Scanner(System.in);
+		System.out.println("Press enter to continue!");
+		String reader = inputen.nextLine();
+		
+		if(reader.equals(""))
+		{
+			return true;
+		}
+		else
+			return false;
+	}
+	
+	// Räknar ut nuvarande statistik 
+	public void computeStats() {
 		if (shotsFired == 0) {
 			hitRate = 0;
+			dmgRate = 0;
 		} else {
 			hitRate = (hitCount / shotsFired);
 			hitRate *= 100;
+			dmgRate = (hitCount / opponentShipParts);
+			dmgRate *= 100;
+			
 		}
 		System.out.println("Current hit rate: " + hitRate + "%");
+		System.out.println("Current damage rate: " + dmgRate + "%");
 		System.out.println("Number of shots fired: " + shotsFired);
 		System.out.println("Number of hits: " + hitCount);
 		System.out.println("Number of missed shots: " + missCount);
@@ -250,6 +341,7 @@ public class Player {
 		
 	}
 
+	// Getter för hit rate
 	public float getHitRate() {
 		return hitRate;
 	}

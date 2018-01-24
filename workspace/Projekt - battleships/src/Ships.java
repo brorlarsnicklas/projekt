@@ -1,6 +1,7 @@
 
 public enum Ships {
 
+	// Skapar skepp med namn, beteckning och storlek
 	cruiser("Cruiser",'C', 5),
 	battleship("Battleship",'B', 4),
 	yacht("Yacht",'Y', 3),
@@ -16,8 +17,8 @@ public enum Ships {
 		shipName = name;
 		shipDesc = description;
 		shipSize = size;
-		
 	}
+	// Getters
 	public String getShipName()
 	{
 		return shipName;

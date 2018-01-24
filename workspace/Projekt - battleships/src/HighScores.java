@@ -10,6 +10,7 @@ public class HighScores {
 	private Scanner scanner;
 	private float highScore;
 
+	// Öppnar fil för input
 	public void openWriteFile(){
 		try{
 			formatter  = new Formatter("highscore.txt");
@@ -19,14 +20,17 @@ public class HighScores {
 		}
 	}
 	
+	// Tar bort tidigare resultat
 	public void deleteRecords(){
 		toplist.clear();
 	}
 	
+	// Lägger till resultat i textfilen
 	public void addRecord(String name, float score){
 		formatter.format("%s%f\n", name+" ", score);
 	}
 	
+	// Lista för highscore 
 	public HashMap<String,Float> readFile(){
 		toplist = new HashMap<>();
 		try{

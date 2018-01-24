@@ -2,21 +2,22 @@ import java.util.Scanner;
 
 public class Board {
 
-	private final int ROW = 10;
-	private final int COL = 10;
+	private final int ROW = 10; // Höjd på spelplanen
+	private final int COL = 10; // Bredd på spelplanen
 	private char[][] shipboard = new char[ROW][COL];
 	private char[][] shootingboard = new char[ROW][COL];
 	protected int startRow, startCol, shipDirection;
-	protected boolean horizontal = true;
+	protected boolean horizontal = true;	// boolean för att välja riktning på skepp
 	Scanner input = new Scanner(System.in);
 	
+	// Skapar spelplaner
 	public void Board()
 	{
 		createboard(shipboard);
 		createboard(shootingboard);
 	}
 	
-	// Skapar en spelplan
+	// Lägger ut "vatten" på spelplanen
 	public char[][] createboard(char[][] board) {
 		for (int i = 0; i < ROW; i++) {
 			for (int j = 0; j < COL; j++) {
@@ -56,13 +57,14 @@ public class Board {
 			}
 		}
 	}
-
+	// Kontrollerar om platsen är ledig
 	public boolean checkEmptySpot(int row, int col, boolean horizontal, int shipsize)
-	{	// Räknar så att det inte ligger skepp på följande platser, tidigare tog den bara 1:a platsen
+	{	
+		// Räknar så att det inte ligger skepp på efterföljande platser
 		int unitCount = shipsize;
 		
 		for(int i = 0; i < shipsize; i++)
-		{
+		{	
 			if((horizontal && (shipboard[row][col+i] == '~')) || (!horizontal && (shipboard[row + i][col] == '~')))
 			{
 					unitCount--;	
@@ -77,64 +79,7 @@ public class Board {
 		return false;
 	}
 	
-/*	
-	// Tar input för placering av skepp på spelplanen
-	public void shipPlacement()
-	{	
-		for(Ships ships : Ships.values())
-		{
-			printBoard(shipboard);
-			System.out.println("Name of the ship: "+ ships.getShipName()+"\nSize: "+ships.getShipSize() + " units");
-			boolean valid = true;
-			boolean missplaced = true;
-			while(missplaced)
-			do {
-				try 
-				{
-					horizontal = true;
-					System.out.println("\nPlace the ship by entering\nstarting coordinates and direction.");
-					System.out.println("\nEnter a column: ");
-					startCol = input.nextInt();
-					
-					System.out.println("Enter a row: ");
-					startRow = input.nextInt();
-					
-					System.out.println("Direction of the ship is horizontal.\nDo you want to switch to vertical? \n1: Yes\n2: no");
-					shipDirection = input.nextInt();
-					
-					if(shipDirection == 1)
-					{
-						horizontal = false;
-					}
-					
-					if(!validInput(startRow, startCol, horizontal, ships.getShipSize()))
-					{
-						System.out.println("Boat missplaced!\nTry again");
-					}
-					else
-					{
-						if(checkEmptySpot(startRow, startCol, horizontal, ships.getShipSize()))
-						{
-							missplaced = false;
-							setShip(startRow, startCol, horizontal, ships.getShipSize(), ships.getShipDescription());	
-						}
-						else
-						{
-							System.out.println("These coordinates are already covered by a ship, try again!");
-						}
-					}
-					valid = false;
-				} 
-				catch (Exception e) 
-				{
-					System.out.println("\n* Input must be a int value *\n");
-					input.next();
-				}
-			   } while (valid);		
-		}
-	} */
-	
-	// Kollar ifall spelarens input är inom spelplanen
+	// Kontrollerar att spelarens input är inom spelplanen
 	public boolean validInput(int testRow, int testCol, boolean horizontal, int shipSize)
 	{
 		if(0 > testCol || testCol > 10)
@@ -146,21 +91,30 @@ public class Board {
 		{
 			return false;
 		}
-		
+	
 		if(horizontal && (testCol + shipSize) > 10)
 		{
 			return false;
 		}
+	
 		if(!horizontal && (testRow + shipSize) > 10)
 		{
 			return false;
 		}
 		
 		return true;
-		
 	}
 	
-	// Getter för spelplanen
+	// Printar tomma rader för att dölja spelplanen för motståndaren
+	public void printEmptyRows()
+	{
+		for(int i = 0; i < 50; i++)
+		{
+			System.out.println(". ");
+		}
+	}
+	
+	// Getters för spelplanerna
 	public char[][] getshipboard()
 	{
 		return shipboard;
