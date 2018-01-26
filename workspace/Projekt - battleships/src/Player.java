@@ -46,13 +46,15 @@ public class Player {
 						if(!stack.isEmpty())
 						{
 							System.out.println("Coordinate suggestions based on last hit: ");
-							
+		
 							tempCol = (int) stack.pop();
 							tempRow = (int) stack.pop();
 							while(oppBoard.getshootingboard()[tempRow][tempCol] == 'X' || oppBoard.getshootingboard()[tempRow][tempCol] == 'O')
 							{
+								if(!stack.isEmpty()){
 								tempCol = (int) stack.pop();
 								tempRow = (int) stack.pop();
+								}	
 							}
 							System.out.println("Col: " + tempCol);
 							System.out.println("Row: " + tempRow);
@@ -114,7 +116,7 @@ public class Player {
 					} 
 					catch (Exception e) 
 					{
-						System.out.println("\n* Input must be a int value, Captain! *\n");
+						System.out.println("\n* Input must be an int value, Captain! *\n");
 						input.next();
 					}
 				} while (valid);

@@ -58,6 +58,13 @@ public class Board {
 		}
 	}
 	// Kontrollerar om platsen är ledig
+	/**
+	 * @param row
+	 * @param col
+	 * @param horizontal
+	 * @param shipsize
+	 * @return
+	 */
 	public boolean checkEmptySpot(int row, int col, boolean horizontal, int shipsize)
 	{	
 		// Räknar så att det inte ligger skepp på efterföljande platser
